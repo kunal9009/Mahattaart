@@ -1,0 +1,7 @@
+{
+  "name": "Copy of MahattaArt Wallpaper",
+  "description": "A premium wallpaper e-commerce experience featuring curated designs, custom uploads, and smart filtering.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
