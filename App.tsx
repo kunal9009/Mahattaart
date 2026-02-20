@@ -7,14 +7,18 @@ import Wishlist from './pages/Wishlist';
 import Cart from './pages/Cart';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import NURChat, { NURFloatingButton } from './components/NURChat';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>(Page.Home);
   const [selectedFilter, setSelectedFilter] = useState<{ type: string; value: string } | null>(null);
-  
+
   // E-commerce State
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
   const [cart, setCart] = useState<CartItem[]>([]);
+
+  // NUR AI Chat State
+  const [isNUROpen, setIsNUROpen] = useState(false);
 
   // Auto-scroll to top on page change
   useEffect(() => {
@@ -44,14 +48,26 @@ const App: React.FC = () => {
     setCart(prev => {
       const existing = prev.find(item => item.id === wallpaper.id);
       if (existing) {
-        return prev.map(item => 
+        return prev.map(item =>
           item.id === wallpaper.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
       return [...prev, { ...wallpaper, quantity: 1 }];
     });
-    // Optional: Switch to cart or show a toast
     setCurrentPage(Page.Cart);
+  };
+
+  // Add to cart without page navigation (used by NUR AI)
+  const addToCartSilent = (wallpaper: Wallpaper) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.id === wallpaper.id);
+      if (existing) {
+        return prev.map(item =>
+          item.id === wallpaper.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prev, { ...wallpaper, quantity: 1 }];
+    });
   };
 
   const updateCartQuantity = (id: string, delta: number) => {
@@ -71,11 +87,16 @@ const App: React.FC = () => {
   const renderPage = () => {
     switch (currentPage) {
       case Page.Home:
-        return <Home onNavigateListing={navigateToListing} />;
+        return (
+          <Home
+            onNavigateListing={navigateToListing}
+            onOpenNUR={() => setIsNUROpen(true)}
+          />
+        );
       case Page.Listing:
         return (
-          <Listing 
-            initialFilter={selectedFilter} 
+          <Listing
+            initialFilter={selectedFilter}
             onToggleWishlist={toggleWishlist}
             wishlistIds={wishlistIds}
             onAddToCart={addToCart}
@@ -83,8 +104,8 @@ const App: React.FC = () => {
         );
       case Page.Wishlist:
         return (
-          <Wishlist 
-            wishlistIds={wishlistIds} 
+          <Wishlist
+            wishlistIds={wishlistIds}
             onToggleWishlist={toggleWishlist}
             onAddToCart={addToCart}
             onNavigateListing={() => navigateToListing('all', 'all')}
@@ -92,15 +113,20 @@ const App: React.FC = () => {
         );
       case Page.Cart:
         return (
-          <Cart 
-            items={cart} 
-            onUpdateQuantity={updateCartQuantity} 
+          <Cart
+            items={cart}
+            onUpdateQuantity={updateCartQuantity}
             onRemoveItem={removeFromCart}
             onNavigateListing={() => navigateToListing('all', 'all')}
           />
         );
       default:
-        return <Home onNavigateListing={navigateToListing} />;
+        return (
+          <Home
+            onNavigateListing={navigateToListing}
+            onOpenNUR={() => setIsNUROpen(true)}
+          />
+        );
     }
   };
 
@@ -111,9 +137,9 @@ const App: React.FC = () => {
         Get 10% off on your first wallpaper order! Use code: <span className="bg-white text-rose-900 px-1.5 rounded-[1px] ml-1 font-mono leading-none py-0.5">FIRST10</span>
       </div>
 
-      <Header 
-        onNavigateHome={navigateToHome} 
-        onNavigateListing={() => navigateToListing('all', 'all')} 
+      <Header
+        onNavigateHome={navigateToHome}
+        onNavigateListing={() => navigateToListing('all', 'all')}
         onNavigateWishlist={() => setCurrentPage(Page.Wishlist)}
         onNavigateCart={() => setCurrentPage(Page.Cart)}
         wishlistCount={wishlistIds.size}
@@ -125,6 +151,28 @@ const App: React.FC = () => {
       </main>
 
       <Footer />
+
+      {/* NUR AI Floating Button – hidden when chat is open */}
+      {!isNUROpen && (
+        <NURFloatingButton onClick={() => setIsNUROpen(true)} />
+      )}
+
+      {/* NUR AI Chat Panel */}
+      <NURChat
+        isOpen={isNUROpen}
+        onClose={() => setIsNUROpen(false)}
+        onAddToCart={addToCartSilent}
+        onToggleWishlist={toggleWishlist}
+        wishlistIds={wishlistIds}
+        onNavigateListing={(type, value) => {
+          navigateToListing(type, value);
+          setIsNUROpen(false);
+        }}
+        onNavigateCart={() => {
+          setCurrentPage(Page.Cart);
+          setIsNUROpen(false);
+        }}
+      />
     </div>
   );
 };

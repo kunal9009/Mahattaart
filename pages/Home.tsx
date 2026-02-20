@@ -2,12 +2,14 @@
 import React, { useRef } from 'react';
 import { CATEGORIES, SPACES, MOODS, MOCK_WALLPAPERS, PROMISES, REVIEWS } from '../constants';
 import { ArrowRight, ChevronLeft, ChevronRight, Upload, CheckCircle, Quote, Leaf, Award } from 'lucide-react';
+import Hero from '../components/Hero';
 
 interface HomeProps {
   onNavigateListing: (type: string, value: string) => void;
+  onOpenNUR?: () => void;
 }
 
-const Home: React.FC<HomeProps> = ({ onNavigateListing }) => {
+const Home: React.FC<HomeProps> = ({ onNavigateListing, onOpenNUR }) => {
   const trendingRef = useRef<HTMLDivElement>(null);
   const categoryScrollRef = useRef<HTMLDivElement>(null);
   const spaceScrollRef = useRef<HTMLDivElement>(null);
@@ -30,6 +32,9 @@ const Home: React.FC<HomeProps> = ({ onNavigateListing }) => {
 
   return (
     <div className="flex flex-col">
+      {/* Hero Section */}
+      <Hero onBrowse={() => onNavigateListing('all', 'all')} onOpenNUR={onOpenNUR} />
+
       {/* Viewport Optimized: Category & Space Navigation */}
       <div className="bg-white">
         {/* Section 1 — Shop by Category */}
